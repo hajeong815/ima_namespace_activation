@@ -15,6 +15,12 @@ This document describes the steps for activating [IMA namespace](https://github.
 
 In this repository, I use TPM 2.0 with `swtpm`. Therefore, all the TPM commands specified below are for TPM 2.0, hence there may be differences for TPM 1.0 commands.
 
+## Demo video
+
+<img src="https://github.com/hajeong815/ima_namespace_activation/blob/main/localhost/demo_videos/imans_localhost.gif">
+
+You can find this video in different formats(`.webm`, `.mp4`) [here](https://github.com/hajeong815/ima_namespace_activation/tree/main/localhost/demo_videos).
+
 ## 0. TPM access for the IMA namespace
 
 **To be able to access TPM chip inside a IMA namespace, this step should be done before the activation of the IMA namespace!**
