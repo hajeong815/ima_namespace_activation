@@ -53,7 +53,7 @@ Then, proceed to the next steps.
   WORKDIR /
   ```
 
-  Create a simple `Dockerfile` for the demo container.
+  Create a simple `Dockerfile` for the demo container. This file can be found [here](https://github.com/hajeong815/ima_namespace_activation/blob/main/container/Dockerfile).
   
   **Note:** `tpm2-abrmd tpm2-tools tss2` should be installed in your docker container.
 
