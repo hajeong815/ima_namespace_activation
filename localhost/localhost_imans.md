@@ -55,9 +55,59 @@ Then, write an namespace-specific policy to `/sys/kernel/security/ima/policy`:
 cat /dir/to/your/policy > /sys/kernel/security/ima/policy
 ```
 
+In this demo, the policy file below is used:
+
+```
+# PROC_SUPER_MAGIC
+dont_measure fsmagic=0x9fa0
+dont_appraise fsmagic=0x9fa0
+# SYSFS_MAGIC
+dont_measure fsmagic=0x62656572
+dont_appraise fsmagic=0x62656572
+# DEBUGFS_MAGIC
+dont_measure fsmagic=0x64626720
+dont_appraise fsmagic=0x64626720
+# TMPFS_MAGIC
+dont_measure fsmagic=0x01021994
+dont_appraise fsmagic=0x01021994
+# RAMFS_MAGIC
+dont_appraise fsmagic=0x858458f6
+# DEVPTS_SUPER_MAGIC
+dont_measure fsmagic=0x1cd1
+dont_appraise fsmagic=0x1cd1
+# BINFMTFS_MAGIC
+dont_measure fsmagic=0x42494e4d
+dont_appraise fsmagic=0x42494e4d
+# SECURITYFS_MAGIC
+dont_measure fsmagic=0x73636673
+dont_appraise fsmagic=0x73636673
+# SELINUX_MAGIC
+dont_measure fsmagic=0xf97cff8c
+dont_appraise fsmagic=0xf97cff8c
+# CGROUP_SUPER_MAGIC
+dont_measure fsmagic=0x27e0eb
+dont_appraise fsmagic=0x27e0eb
+# NSFS_MAGIC
+dont_measure fsmagic=0x6e736673
+dont_appraise fsmagic=0x6e736673
+
+#measure func=FILE_CHECK
+measure func=FILE_CHECK
+measure func=MODULE_CHECK
+measure func=FIRMWARE_CHECK
+measure func=KEXEC_KERNEL_CHECK
+measure func=KEXEC_INITRAMFS_CHECK
+measure func=KEXEC_CMDLINE
+measure func=KEY_CHECK keyrings=.builtin_trusted_keys|.ima
+measure func=KEY_CHECK keyrings=.builtin_trusted_keys|.evm
+dont_appraise fowner=0
+```
+
 To check if your IMA namespace is activated, run: `cat /sys/kernel/security/ima/active`. 
 
 If it returns `1`, then the namespace is activated. Otherwise, it will return `0`.
+
+Check the [IMA namespace patch log](https://lwn.net/Articles/922361/) for more information.
 
 ## 2. Execute a file and get the runtime PCR value
 
