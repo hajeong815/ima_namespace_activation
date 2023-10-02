@@ -2,6 +2,16 @@
 
 This document describes the steps for activating [IMA namespace](https://github.com/stefanberger/linux-ima-namespaces) and shows how to check the differences between runtime PCR values when a file gets modified.
 
+0. [Start swtpm using socket interface](#0-start-swtpm-using-socket-interface)
+
+1. [Create a Docker container](#1-create-a-docker-container)
+
+2. [Start the container and TPM](#2-start-the-container-and-tpm)
+
+3. [Spawn a new user namespace, and activate IMA namespace](#3-spawn-a-new-user-namespace-and-activate-ima-namespace)
+
+4. [Execute a file and get the runtime PCR value](#4-execute-a-file-and-get-the-runtime-pcr-value)
+
 ## Prerequisites for your system:
 
 1. IMA-namespace enabled kernel. Kernel codes can be downloaded [here](https://github.com/stefanberger/linux-ima-namespaces).
@@ -9,6 +19,12 @@ This document describes the steps for activating [IMA namespace](https://github.
 3. `Docker` should be installed on your system.
 
 In this repository, I use TPM 2.0 with `swtpm`. Therefore, all the TPM commands specified below are for TPM 2.0, hence there may be differences for TPM 1.0 commands.
+
+## Demo video
+
+<img src="https://github.com/hajeong815/ima_namespace_activation/blob/main/container/demo_videos/imans_container.gif">
+
+You can find this video in different formats(`.webm`, `.mp4`) [here](https://github.com/hajeong815/ima_namespace_activation/tree/main/container/demo_videos).
 
 
 ## 0. Start swtpm using socket interface
@@ -20,6 +36,8 @@ mkdir -p /dir/to/your/dockerfile/myvtpm
 swtpm socket --tpmstate dir=/dir/to/your/dockerfile/myvtpm --tpm2 --ctrl type=tcp,port=2322 \
    --server type=tcp,port=2321 --flags not-need-init -d
 ```
+
+For more information about using swtpm socket interface with port, check [swtpm wiki](https://github.com/stefanberger/swtpm/wiki/Using-the-IBM-TSS-with-swtpm).
 
 Then, proceed to the next steps.
 
@@ -36,6 +54,8 @@ Then, proceed to the next steps.
   ```
 
   Create a simple `Dockerfile` for the demo container.
+  
+  **Note:** `tpm2-abrmd tpm2-tools tss2` should be installed in your docker container.
 
 - Create the container
 
@@ -143,6 +163,11 @@ Check the [IMA namespace patch log](https://lwn.net/Articles/922361/) for more i
 To presume a malicious attack:
 1. Execute a simple Python file(`demo.python`), get the file hash from the IMA log(`/sys/kernel/security/ima/ascii_runtime_measurements`) and PCR 10 values. These values are the expected values.
 
+   To extend file hash to PCR bank, use:
+   ```
+   tpm2_pcrevent 10 demo.python
+   ```
+   
    ```
    root@sev-guest-imans:/# echo 'print("hello world")' > demo.python
    root@sev-guest-imans:/# python3 demo.python 
@@ -163,9 +188,9 @@ To presume a malicious attack:
        10: 0x0B5941D890EAE3D7C9889EEAB81E10CA213331943E8967BF761C2DDF0BF50EC2625167CE5833C35BA1011CBFD103FCB3A9C500975EDB29A7110B74D06C90A494
    ```
 
-   Here, the expected values are:\
-     file hash: `3404d8a30339a58713878a05d51168dad05ba93671009f0d62ac98185840f5b0d2703989f0fdf7ef3fd89c1011646069b53ea9d7db71f3c6eed3c71677f6d209` \
-     PCR 10 value: `0x0B5941D890EAE3D7C9889EEAB81E10CA213331943E8967BF761C2DDF0BF50EC2625167CE5833C35BA1011CBFD103FCB3A9C500975EDB29A7110B74D06C90A494`
+   Here, the expected values are:
+     - file hash: `3404d8a30339a58713878a05d51168dad05ba93671009f0d62ac98185840f5b0d2703989f0fdf7ef3fd89c1011646069b53ea9d7db71f3c6eed3c71677f6d209`
+     - PCR 10 value: `0x0B5941D890EAE3D7C9889EEAB81E10CA213331943E8967BF761C2DDF0BF50EC2625167CE5833C35BA1011CBFD103FCB3A9C500975EDB29A7110B74D06C90A494`
    
 3. Modify the Python file, and execute it again.
    
@@ -195,7 +220,7 @@ To presume a malicious attack:
        10: 0x87BAFBD7A49ECB85494709DE3028621AA26C7B5D923E2D4C4C09002F5CEBB81117ED57926C774F951F5E68D63E8298E41DC62D15162D5CFE61EDFA861DF9F8BC
    ```
 
-   Unexpected values: \
-     file hash: `470a295a44c3f94106a767c27b519397bd4f6a1eda610d5401e8fa1e342b36ee1f8614c2862b172a8744e7aa79cf967a23966aa434042cf0d08f9d762b42af5e` \
-     PCR 10 value: `0x87BAFBD7A49ECB85494709DE3028621AA26C7B5D923E2D4C4C09002F5CEBB81117ED57926C774F951F5E68D63E8298E41DC62D15162D5CFE61EDFA861DF9F8BC`
+   Unexpected values:
+      - file hash: `470a295a44c3f94106a767c27b519397bd4f6a1eda610d5401e8fa1e342b36ee1f8614c2862b172a8744e7aa79cf967a23966aa434042cf0d08f9d762b42af5e`
+      - PCR 10 value: `0x87BAFBD7A49ECB85494709DE3028621AA26C7B5D923E2D4C4C09002F5CEBB81117ED57926C774F951F5E68D63E8298E41DC62D15162D5CFE61EDFA861DF9F8BC`
 
